@@ -1,0 +1,584 @@
+{
+  "entities": {
+    "SchoolSettings": {
+      "title": "SchoolSettings",
+      "description": "Identitas sekolah dan batas KKM portal akademik.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150,
+          "description": "Nama resmi sekolah."
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200,
+          "description": "Subjudul portal akademik."
+        },
+        "address": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300,
+          "description": "Alamat lengkap sekolah untuk kop surat."
+        },
+        "logoUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500,
+          "description": "URL langsung gambar logo sekolah."
+        },
+        "kkm": {
+          "type": "number",
+          "description": "Kriteria Ketuntasan Minimal default sekolah (0 sampai 100)."
+        },
+        "subjectKkm": {
+          "type": "object",
+          "description": "Peta nama mata pelajaran ke batas KKM masing-masing mapel (0 sampai 100)."
+        },
+        "theme": {
+          "type": "string",
+          "enum": ["royal-violet", "bright-blue", "emerald-teal", "crimson-rose", "amber-gold", "teal-cyan"],
+          "maxLength": 30,
+          "description": "Tema warna utama antarmuka portal."
+        },
+        "logoRightUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500,
+          "description": "URL langsung gambar logo kanan kop surat."
+        },
+        "kopLines": {
+          "type": "array",
+          "description": "Maksimal 6 baris teks kop surat resmi sekolah."
+        },
+        "headmasterName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Nama Kepala Sekolah / Penandatangan transkrip."
+        },
+        "headmasterNip": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60,
+          "description": "NIP / NUPTK Penandatangan transkrip."
+        },
+        "cityName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100,
+          "description": "Nama kota/kabupaten untuk tanggal cetak dokumen."
+        },
+        "showKopSurat": {
+          "type": "boolean",
+          "description": "Menampilkan kop surat resmi saat cetak transkrip & leger."
+        },
+        "showHeadmasterSign": {
+          "type": "boolean",
+          "description": "Menampilkan tanda tangan Kepala Sekolah saat cetak transkrip & leger."
+        },
+        "signatureMode": {
+          "type": "string",
+          "enum": ["both", "headmaster", "teacher", "none"],
+          "maxLength": 20,
+          "description": "Pilihan tampilan tanda tangan dokumen: kepala sekolah saja, guru saja, keduanya, atau tidak ditampilkan."
+        },
+        "teacherSignTitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100,
+          "description": "Label jabatan tanda tangan guru (misal Guru / Wali Kelas)."
+        },
+        "teacherSignName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Nama lengkap guru penanda tangan dokumen."
+        },
+        "teacherSignNip": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60,
+          "description": "NIP atau NUPTK guru penanda tangan dokumen."
+        },
+        "loginLogoUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500,
+          "description": "URL logo tunggal khusus untuk halaman login."
+        },
+        "loginTitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Judul khusus panel kiri halaman login."
+        },
+        "loginSubtitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200,
+          "description": "Subjudul khusus panel kiri halaman login."
+        },
+        "loginDescription": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300,
+          "description": "Keterangan atau alamat khusus panel kiri halaman login."
+        },
+        "loginFooterText": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Teks kaki khusus pada panel kiri halaman login."
+        },
+        "loginFormTitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Judul formulir masuk pada sisi kanan halaman login."
+        },
+        "loginFormSubtitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 250,
+          "description": "Subjudul panduan formulir masuk pada halaman login."
+        },
+        "showLoginKkm": {
+          "type": "boolean",
+          "description": "Menampilkan informasi KKM sekolah pada halaman login."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembuatan dokumen."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembaruan terakhir dokumen."
+        }
+      },
+      "required": ["name", "subtitle", "address", "logoUrl", "kkm", "createdAt", "updatedAt"]
+    },
+    "AcademicSettings": {
+      "title": "AcademicSettings",
+      "description": "Daftar mata pelajaran dan komponen penilaian sekolah.",
+      "type": "object",
+      "properties": {
+        "subjects": {
+          "type": "array",
+          "description": "Daftar nama mata pelajaran aktif (maksimal 50)."
+        },
+        "components": {
+          "type": "array",
+          "description": "Daftar komponen nilai per mata pelajaran (maksimal 20)."
+        },
+        "visibility": {
+          "type": "object",
+          "description": "Pengaturan tampilan nilai, foto cetak (showStudentPhoto), dan tombol cetak siswa (showPrintButton)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembuatan dokumen."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembaruan terakhir dokumen."
+        }
+      },
+      "required": ["subjects", "components", "createdAt", "updatedAt"]
+    },
+    "AdminMeta": {
+      "title": "AdminMeta",
+      "description": "Dokumen verifikasi dan bukti tulis sinkronisasi admin.",
+      "type": "object",
+      "properties": {
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp tulis server saat mutasi admin."
+        }
+      },
+      "required": ["updatedAt"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Rekam biodata dan nilai siswa lengkap untuk panel admin.",
+      "type": "object",
+      "properties": {
+        "nis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Nomor Induk Siswa (plain text dengan nol di depan terjaga)."
+        },
+        "nisn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Nomor Induk Siswa Nasional (digunakan sebagai password login siswa)."
+        },
+        "nama": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150,
+          "description": "Nama lengkap siswa."
+        },
+        "noAbsen": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 20,
+          "description": "Nomor absen siswa."
+        },
+        "kelas": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 50,
+          "description": "Kelas siswa."
+        },
+        "ttl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Tempat dan tanggal lahir siswa."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["LULUS", "DITANGGUHKAN"],
+          "description": "Status kelulusan siswa."
+        },
+        "photoUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500,
+          "description": "URL langsung foto profil siswa."
+        },
+        "jenisKelamin": {
+          "type": "string",
+          "enum": ["L", "P", ""],
+          "maxLength": 20,
+          "description": "Jenis kelamin siswa (L = Laki-laki, P = Perempuan)."
+        },
+        "email": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Alamat email siswa."
+        },
+        "scores": {
+          "type": "object",
+          "description": "Peta nama mata pelajaran ke nilai akhir angka."
+        },
+        "scoreDetails": {
+          "type": "object",
+          "description": "Peta bertingkat nama mata pelajaran ke komponen nilai."
+        },
+        "portalToken": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Hash SHA-256 dari pasangan NIS:NISN."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembuatan dokumen."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembaruan terakhir dokumen."
+        }
+      },
+      "required": [
+        "nis",
+        "nisn",
+        "nama",
+        "noAbsen",
+        "kelas",
+        "ttl",
+        "status",
+        "scores",
+        "scoreDetails",
+        "portalToken",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StudentTranscript": {
+      "title": "StudentTranscript",
+      "description": "Dokumen transkrip individual siswa yang diakses lewat token SHA-256(NIS:NISN).",
+      "type": "object",
+      "properties": {
+        "nis": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Nomor Induk Siswa."
+        },
+        "nisn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Nomor Induk Siswa Nasional."
+        },
+        "nama": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150,
+          "description": "Nama lengkap siswa."
+        },
+        "noAbsen": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 20,
+          "description": "Nomor absen siswa."
+        },
+        "kelas": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 50,
+          "description": "Kelas siswa."
+        },
+        "ttl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Tempat tanggal lahir siswa."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["LULUS", "DITANGGUHKAN"],
+          "description": "Status kelulusan siswa."
+        },
+        "photoUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500,
+          "description": "URL langsung foto profil siswa."
+        },
+        "jenisKelamin": {
+          "type": "string",
+          "enum": ["L", "P", ""],
+          "maxLength": 20,
+          "description": "Jenis kelamin siswa (L = Laki-laki, P = Perempuan)."
+        },
+        "email": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Alamat email siswa."
+        },
+        "scores": {
+          "type": "object",
+          "description": "Peta nilai akhir per mata pelajaran."
+        },
+        "scoreDetails": {
+          "type": "object",
+          "description": "Peta rincian komponen nilai per mata pelajaran."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembuatan dokumen."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembaruan terakhir dokumen."
+        }
+      },
+      "required": [
+        "nis",
+        "nisn",
+        "nama",
+        "noAbsen",
+        "kelas",
+        "ttl",
+        "status",
+        "scores",
+        "scoreDetails",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PortalUser": {
+      "title": "PortalUser",
+      "description": "Akun pengelola portal untuk peran Guru dan Administrator.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "ID unik akun pengguna."
+        },
+        "username": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Username login guru atau admin."
+        },
+        "nama": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150,
+          "description": "Nama lengkap guru atau admin."
+        },
+        "email": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Alamat email pengguna."
+        },
+        "nip": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60,
+          "description": "NIP atau kode pegawai."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "guru"],
+          "description": "Peran pengguna di portal."
+        },
+        "assignedSubjects": {
+          "type": "array",
+          "description": "Daftar mata pelajaran yang diampu guru."
+        },
+        "assignedClasses": {
+          "type": "array",
+          "description": "Daftar kelas yang diampu guru."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Status aktif akun."
+        },
+        "loginToken": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Hash SHA-256 kredensial login pengguna."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembuatan dokumen."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembaruan terakhir dokumen."
+        }
+      },
+      "required": ["id", "username", "nama", "role", "active", "loginToken", "createdAt", "updatedAt"]
+    },
+    "UserSession": {
+      "title": "UserSession",
+      "description": "Dokumen lookup sesi login guru dan admin berindeks SHA-256 kredensial.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "ID pengguna terhubung."
+        },
+        "username": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Username pengguna."
+        },
+        "nama": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150,
+          "description": "Nama lengkap pengguna."
+        },
+        "email": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150,
+          "description": "Email pengguna."
+        },
+        "nip": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60,
+          "description": "NIP pengguna."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "guru"],
+          "description": "Peran pengguna."
+        },
+        "assignedSubjects": {
+          "type": "array",
+          "description": "Daftar mata pelajaran yang diampu."
+        },
+        "assignedClasses": {
+          "type": "array",
+          "description": "Daftar kelas yang diampu."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Status aktif akun."
+        },
+        "workspaceKey": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 64,
+          "description": "Kunci ruang kerja terverifikasi untuk akun aktif."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembuatan dokumen."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Waktu pembaruan terakhir dokumen."
+        }
+      },
+      "required": ["userId", "username", "nama", "role", "active", "workspaceKey", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/school_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SchoolSettings" },
+      "description": "Konfigurasi identitas sekolah dan KKM (dokumen utama: main)."
+    },
+    "/academic_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/AcademicSettings" },
+      "description": "Daftar mata pelajaran dan komponen nilai (dokumen utama: main)."
+    },
+    "/workspaces/{adminKey}/meta/{metaId}": {
+      "schema": { "$ref": "#/entities/AdminMeta" },
+      "description": "Bukti tulis atomik administrator terverifikasi kunci kapabilitas."
+    },
+    "/workspaces/{adminKey}/students/{studentId}": {
+      "schema": { "$ref": "#/entities/Student" },
+      "description": "Koleksi data siswa dan nilai terisolasi kunci kapabilitas administrator."
+    },
+    "/workspaces/{adminKey}/users/{userId}": {
+      "schema": { "$ref": "#/entities/PortalUser" },
+      "description": "Koleksi manajemen akun guru dan admin tambahan."
+    },
+    "/user_sessions/{tokenId}": {
+      "schema": { "$ref": "#/entities/UserSession" },
+      "description": "Dokumen lookup login akun guru dan admin tanpa izin list."
+    },
+    "/transcripts/{tokenId}": {
+      "schema": { "$ref": "#/entities/StudentTranscript" },
+      "description": "Dokumen transkrip individual berindeks SHA-256(NIS:NISN) tanpa izin list."
+    }
+  }
+}

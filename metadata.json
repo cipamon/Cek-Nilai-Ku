@@ -1,0 +1,5 @@
+{
+  "name": "Portal Cek Nilai Siswa & Panel Admin",
+  "description": "Portal cek nilai akademik siswa berbasis NIS dan NISN dengan panel administrasi sekolah, leger multi-nilai, tema warna dinamis, foto siswa, dan kop surat resmi.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Public Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  --theme-page-bg: #F5F3FF;
+  --theme-primary: #6D28D9;
+  --theme-primary-hover: #5B21B6;
+  --theme-heading: #5B21B6;
+  --theme-soft-bg: #EDE9FE;
+  --theme-soft-border: #DDD6FE;
+  --theme-grad-from: #6C2DF4;
+  --theme-grad-via: #5335E5;
+  --theme-grad-to: #3729B0;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--theme-page-bg);
+    color: #0f172a;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+.bg-theme-page {
+  background-color: var(--theme-page-bg);
+}
+
+.bg-theme-gradient {
+  background-image: linear-gradient(155deg, var(--theme-grad-from) 0%, var(--theme-grad-via) 50%, var(--theme-grad-to) 100%);
+}
+
+.bg-theme-primary {
+  background-color: var(--theme-primary);
+}
+.bg-theme-primary:hover {
+  background-color: var(--theme-primary-hover);
+}
+
+.text-theme-heading {
+  color: var(--theme-heading);
+}
+
+.text-theme-primary {
+  color: var(--theme-primary);
+}
+
+.bg-theme-soft {
+  background-color: var(--theme-soft-bg);
+}
+
+.border-theme-soft {
+  border-color: var(--theme-soft-border);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media print {
+  @page {
+    size: auto;
+    margin: 14mm 14mm 16mm 14mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

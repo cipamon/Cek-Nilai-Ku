@@ -1,0 +1,363 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Reusable Global Security Primitives ---
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string
+        && id.size() >= 1
+        && id.size() <= 128
+        && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidHexToken(token) {
+      return token is string
+        && token.size() == 64
+        && token.matches('^[a-f0-9]{64}$');
+    }
+
+    function isAuthorizedAdminKey(key) {
+      return isValidHexToken(key)
+        && key == '4cf164900cdcbcc11ede21d5db88d2b2f3889e2ca78033b1bd6217449be08935';
+    }
+
+    function hasAdminWriteProof() {
+      return getAfter(
+        /databases/$(database)/documents/workspaces/4cf164900cdcbcc11ede21d5db88d2b2f3889e2ca78033b1bd6217449be08935/meta/write_proof
+      ).data.updatedAt == request.time;
+    }
+
+    // --- Validation Blueprints ---
+    function isValidSchoolSettings(data) {
+      return data.keys().hasAll(['name', 'subtitle', 'address', 'logoUrl', 'kkm', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'name', 'subtitle', 'address', 'logoUrl', 'kkm', 'subjectKkm',
+          'theme', 'logoRightUrl', 'kopLines', 'headmasterName', 'headmasterNip', 'cityName',
+          'showKopSurat', 'showHeadmasterSign',
+          'signatureMode', 'teacherSignTitle', 'teacherSignName', 'teacherSignNip',
+          'loginLogoUrl', 'loginTitle', 'loginSubtitle', 'loginDescription',
+          'loginFooterText', 'loginFormTitle', 'loginFormSubtitle', 'showLoginKkm',
+          'createdAt', 'updatedAt'
+        ])
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 150
+        && data.subtitle is string && data.subtitle.size() <= 200
+        && data.address is string && data.address.size() <= 300
+        && data.logoUrl is string && data.logoUrl.size() <= 500
+        && (data.kkm is int || data.kkm is float) && data.kkm >= 0 && data.kkm <= 100
+        && (!('subjectKkm' in data) || (data.subjectKkm is map && data.subjectKkm.size() <= 60))
+        && (!('theme' in data) || (data.theme is string && data.theme in ['royal-violet', 'bright-blue', 'emerald-teal', 'crimson-rose', 'amber-gold', 'teal-cyan'] && data.theme.size() <= 30))
+        && (!('logoRightUrl' in data) || (data.logoRightUrl is string && data.logoRightUrl.size() <= 500))
+        && (!('kopLines' in data) || (data.kopLines is list && data.kopLines.size() <= 6 && (data.kopLines.size() == 0 || (data.kopLines[0] is string && data.kopLines[0].size() <= 200))))
+        && (!('headmasterName' in data) || (data.headmasterName is string && data.headmasterName.size() <= 150))
+        && (!('headmasterNip' in data) || (data.headmasterNip is string && data.headmasterNip.size() <= 60))
+        && (!('cityName' in data) || (data.cityName is string && data.cityName.size() <= 100))
+        && (!('showKopSurat' in data) || data.showKopSurat is bool)
+        && (!('showHeadmasterSign' in data) || data.showHeadmasterSign is bool)
+        && (!('signatureMode' in data) || (data.signatureMode is string && data.signatureMode in ['both', 'headmaster', 'teacher', 'none'] && data.signatureMode.size() <= 20))
+        && (!('teacherSignTitle' in data) || (data.teacherSignTitle is string && data.teacherSignTitle.size() <= 100))
+        && (!('teacherSignName' in data) || (data.teacherSignName is string && data.teacherSignName.size() <= 150))
+        && (!('teacherSignNip' in data) || (data.teacherSignNip is string && data.teacherSignNip.size() <= 60))
+        && (!('loginLogoUrl' in data) || (data.loginLogoUrl is string && data.loginLogoUrl.size() <= 500))
+        && (!('loginTitle' in data) || (data.loginTitle is string && data.loginTitle.size() <= 150))
+        && (!('loginSubtitle' in data) || (data.loginSubtitle is string && data.loginSubtitle.size() <= 200))
+        && (!('loginDescription' in data) || (data.loginDescription is string && data.loginDescription.size() <= 300))
+        && (!('loginFooterText' in data) || (data.loginFooterText is string && data.loginFooterText.size() <= 120))
+        && (!('loginFormTitle' in data) || (data.loginFormTitle is string && data.loginFormTitle.size() <= 120))
+        && (!('loginFormSubtitle' in data) || (data.loginFormSubtitle is string && data.loginFormSubtitle.size() <= 250))
+        && (!('showLoginKkm' in data) || data.showLoginKkm is bool)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidVisibility(v) {
+      return v is map
+        && v.keys().hasAll([
+          'mode', 'visibleSubjects', 'visibleComponents',
+          'showComponentDetails', 'showAverageAndStatus', 'applyToAdminViews'
+        ])
+        && v.keys().hasOnly([
+          'mode', 'visibleSubjects', 'visibleComponents',
+          'showComponentDetails', 'showAverageAndStatus', 'applyToAdminViews',
+          'showStudentPhoto', 'showPrintButton'
+        ])
+        && v.mode is string && v.mode in ['all', 'selected'] && v.mode.size() <= 20
+        && v.visibleSubjects is list && v.visibleSubjects.size() <= 50
+        && (v.visibleSubjects.size() == 0 || (v.visibleSubjects[0] is string && v.visibleSubjects[0].size() <= 100))
+        && v.visibleComponents is list && v.visibleComponents.size() <= 20
+        && (v.visibleComponents.size() == 0 || (v.visibleComponents[0] is string && v.visibleComponents[0].size() <= 100))
+        && v.showComponentDetails is bool
+        && v.showAverageAndStatus is bool
+        && v.applyToAdminViews is bool
+        && (!('showStudentPhoto' in v) || v.showStudentPhoto is bool)
+        && (!('showPrintButton' in v) || v.showPrintButton is bool);
+    }
+
+    function isValidAcademicSettings(data) {
+      return data.keys().hasAll(['subjects', 'components', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['subjects', 'components', 'visibility', 'createdAt', 'updatedAt'])
+        && data.subjects is list
+        && data.subjects.size() <= 50
+        && (data.subjects.size() == 0 || (data.subjects[0] is string && data.subjects[0].size() <= 100))
+        && data.components is list
+        && data.components.size() <= 20
+        && (data.components.size() == 0 || (data.components[0] is string && data.components[0].size() <= 100))
+        && (!('visibility' in data) || isValidVisibility(data.visibility))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminMeta(data) {
+      return data.keys().hasAll(['updatedAt'])
+        && data.keys().hasOnly(['updatedAt'])
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidStudent(data) {
+      return data.keys().hasAll([
+          'nis', 'nisn', 'nama', 'noAbsen', 'kelas', 'ttl', 'status',
+          'scores', 'scoreDetails', 'portalToken', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'nis', 'nisn', 'nama', 'noAbsen', 'kelas', 'ttl', 'status', 'photoUrl', 'jenisKelamin',
+          'email', 'scores', 'scoreDetails', 'portalToken', 'createdAt', 'updatedAt'
+        ])
+        && data.nis is string && data.nis.size() >= 1 && data.nis.size() <= 50
+        && data.nisn is string && data.nisn.size() >= 1 && data.nisn.size() <= 50
+        && data.nama is string && data.nama.size() >= 1 && data.nama.size() <= 150
+        && data.noAbsen is string && data.noAbsen.size() <= 20
+        && data.kelas is string && data.kelas.size() <= 50
+        && data.ttl is string && data.ttl.size() <= 150
+        && data.status is string && data.status in ['LULUS', 'DITANGGUHKAN'] && data.status.size() <= 30
+        && (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500))
+        && (!('jenisKelamin' in data) || (data.jenisKelamin is string && data.jenisKelamin in ['L', 'P', ''] && data.jenisKelamin.size() <= 20))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && data.scores is map && data.scores.size() <= 60
+        && data.scoreDetails is map && data.scoreDetails.size() <= 60
+        && isValidHexToken(data.portalToken)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTranscript(data) {
+      return data.keys().hasAll([
+          'nis', 'nisn', 'nama', 'noAbsen', 'kelas', 'ttl', 'status',
+          'scores', 'scoreDetails', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'nis', 'nisn', 'nama', 'noAbsen', 'kelas', 'ttl', 'status', 'photoUrl', 'jenisKelamin',
+          'email', 'scores', 'scoreDetails', 'createdAt', 'updatedAt'
+        ])
+        && data.nis is string && data.nis.size() >= 1 && data.nis.size() <= 50
+        && data.nisn is string && data.nisn.size() >= 1 && data.nisn.size() <= 50
+        && data.nama is string && data.nama.size() >= 1 && data.nama.size() <= 150
+        && data.noAbsen is string && data.noAbsen.size() <= 20
+        && data.kelas is string && data.kelas.size() <= 50
+        && data.ttl is string && data.ttl.size() <= 150
+        && data.status is string && data.status in ['LULUS', 'DITANGGUHKAN'] && data.status.size() <= 30
+        && (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 500))
+        && (!('jenisKelamin' in data) || (data.jenisKelamin is string && data.jenisKelamin in ['L', 'P', ''] && data.jenisKelamin.size() <= 20))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && data.scores is map && data.scores.size() <= 60
+        && data.scoreDetails is map && data.scoreDetails.size() <= 60
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPortalUser(data) {
+      return data.keys().hasAll(['id', 'username', 'nama', 'role', 'active', 'loginToken', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'id', 'username', 'nama', 'email', 'nip', 'role',
+          'assignedSubjects', 'assignedClasses', 'active', 'loginToken',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id.size() >= 1 && data.id.size() <= 128
+        && data.username is string && data.username.size() >= 1 && data.username.size() <= 80
+        && data.nama is string && data.nama.size() >= 1 && data.nama.size() <= 150
+        && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && (!('nip' in data) || (data.nip is string && data.nip.size() <= 60))
+        && data.role is string && data.role in ['admin', 'guru'] && data.role.size() <= 20
+        && (!('assignedSubjects' in data) || (data.assignedSubjects is list && data.assignedSubjects.size() <= 50 && (data.assignedSubjects.size() == 0 || (data.assignedSubjects[0] is string && data.assignedSubjects[0].size() <= 100))))
+        && (!('assignedClasses' in data) || (data.assignedClasses is list && data.assignedClasses.size() <= 50 && (data.assignedClasses.size() == 0 || (data.assignedClasses[0] is string && data.assignedClasses[0].size() <= 50))))
+        && data.active is bool
+        && isValidHexToken(data.loginToken)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserSession(data) {
+      return data.keys().hasAll(['userId', 'username', 'nama', 'role', 'active', 'workspaceKey', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly([
+          'userId', 'username', 'nama', 'email', 'nip', 'role',
+          'assignedSubjects', 'assignedClasses', 'active', 'workspaceKey',
+          'createdAt', 'updatedAt'
+        ])
+        && data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128
+        && data.username is string && data.username.size() >= 1 && data.username.size() <= 80
+        && data.nama is string && data.nama.size() >= 1 && data.nama.size() <= 150
+        && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && (!('nip' in data) || (data.nip is string && data.nip.size() <= 60))
+        && data.role is string && data.role in ['admin', 'guru'] && data.role.size() <= 20
+        && (!('assignedSubjects' in data) || (data.assignedSubjects is list && data.assignedSubjects.size() <= 50 && (data.assignedSubjects.size() == 0 || (data.assignedSubjects[0] is string && data.assignedSubjects[0].size() <= 100))))
+        && (!('assignedClasses' in data) || (data.assignedClasses is list && data.assignedClasses.size() <= 50 && (data.assignedClasses.size() == 0 || (data.assignedClasses[0] is string && data.assignedClasses[0].size() <= 50))))
+        && data.active is bool
+        && data.workspaceKey is string && (data.workspaceKey.size() == 0 || isValidHexToken(data.workspaceKey))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+
+    // School public identity & KKM (get-only for login portal, atomic write proof for admin)
+    match /school_settings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if false;
+      allow create: if isValidId(settingId)
+        && isValidSchoolSettings(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && hasAdminWriteProof();
+      allow update: if isValidId(settingId)
+        && isValidSchoolSettings(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'subtitle', 'address', 'logoUrl', 'kkm', 'subjectKkm',
+          'theme', 'logoRightUrl', 'kopLines', 'headmasterName', 'headmasterNip', 'cityName',
+          'showKopSurat', 'showHeadmasterSign',
+          'signatureMode', 'teacherSignTitle', 'teacherSignName', 'teacherSignNip',
+          'loginLogoUrl', 'loginTitle', 'loginSubtitle', 'loginDescription',
+          'loginFooterText', 'loginFormTitle', 'loginFormSubtitle', 'showLoginKkm',
+          'updatedAt'
+        ])
+        && hasAdminWriteProof();
+      allow delete: if false;
+    }
+
+    // Academic subjects & components list (get-only for transcript rendering, atomic write proof for admin)
+    match /academic_settings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if false;
+      allow create: if isValidId(settingId)
+        && isValidAcademicSettings(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && hasAdminWriteProof();
+      allow update: if isValidId(settingId)
+        && isValidAcademicSettings(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'subjects', 'components', 'visibility', 'updatedAt'
+        ])
+        && hasAdminWriteProof();
+      allow delete: if false;
+    }
+
+    // Admin capability-isolated workspace
+    match /workspaces/{adminKey}/meta/{metaId} {
+      allow get: if isAuthorizedAdminKey(adminKey) && isValidId(metaId);
+      allow list: if false;
+      allow create, update: if isAuthorizedAdminKey(adminKey)
+        && isValidId(metaId)
+        && isValidAdminMeta(incoming())
+        && incoming().updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /workspaces/{adminKey}/students/{studentId} {
+      allow get: if isAuthorizedAdminKey(adminKey) && isValidId(studentId);
+      allow list: if isAuthorizedAdminKey(adminKey);
+      allow create: if isAuthorizedAdminKey(adminKey)
+        && isValidId(studentId)
+        && isValidStudent(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAuthorizedAdminKey(adminKey)
+        && isValidId(studentId)
+        && isValidStudent(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'nis', 'nisn', 'nama', 'noAbsen', 'kelas', 'ttl', 'status', 'photoUrl', 'jenisKelamin',
+          'email', 'scores', 'scoreDetails', 'portalToken', 'updatedAt'
+        ]);
+      allow delete: if isAuthorizedAdminKey(adminKey) && isValidId(studentId);
+    }
+
+    match /workspaces/{adminKey}/users/{userId} {
+      allow get: if isAuthorizedAdminKey(adminKey) && isValidId(userId);
+      allow list: if isAuthorizedAdminKey(adminKey);
+      allow create: if isAuthorizedAdminKey(adminKey)
+        && isValidId(userId)
+        && isValidPortalUser(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAuthorizedAdminKey(adminKey)
+        && isValidId(userId)
+        && isValidPortalUser(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'id', 'username', 'nama', 'email', 'nip', 'role',
+          'assignedSubjects', 'assignedClasses', 'active', 'loginToken', 'updatedAt'
+        ]);
+      allow delete: if isAuthorizedAdminKey(adminKey) && isValidId(userId);
+    }
+
+    // Teacher & sub-admin login lookup keyed by SHA-256 credentials; list is strictly forbidden
+    match /user_sessions/{tokenId} {
+      allow get: if isValidHexToken(tokenId);
+      allow list: if false;
+      allow create: if isValidHexToken(tokenId)
+        && isValidUserSession(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && hasAdminWriteProof();
+      allow update: if isValidHexToken(tokenId)
+        && isValidUserSession(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'userId', 'username', 'nama', 'email', 'nip', 'role',
+          'assignedSubjects', 'assignedClasses', 'active', 'workspaceKey', 'updatedAt'
+        ])
+        && hasAdminWriteProof();
+      allow delete: if isValidHexToken(tokenId) && hasAdminWriteProof();
+    }
+
+    // Student individual transcript lookup keyed by SHA-256(NIS:NISN); list is strictly forbidden
+    match /transcripts/{tokenId} {
+      allow get: if isValidHexToken(tokenId);
+      allow list: if false;
+      allow create: if isValidHexToken(tokenId)
+        && isValidTranscript(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && hasAdminWriteProof();
+      allow update: if isValidHexToken(tokenId)
+        && isValidTranscript(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'nis', 'nisn', 'nama', 'noAbsen', 'kelas', 'ttl', 'status', 'photoUrl', 'jenisKelamin',
+          'email', 'scores', 'scoreDetails', 'updatedAt'
+        ])
+        && hasAdminWriteProof();
+      allow delete: if isValidHexToken(tokenId) && hasAdminWriteProof();
+    }
+  }
+}
